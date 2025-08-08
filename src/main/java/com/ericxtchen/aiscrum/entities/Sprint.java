@@ -1,23 +1,54 @@
 package com.ericxtchen.aiscrum.entities;
+import com.ericxtchen.aiscrum.enums.SprintStatus;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "sprints")
 public class Sprint {
+    @Getter
+    @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
-    @ElementCollection
-    private List<String> tasks; // definitely needs a more complex data structure
+    @Getter
+    @Setter
+    @Column(name = "sprint_name", nullable = false)
+    private String sprintName;
 
-    @Temporal(TemporalType.DATE)
-    private Date startDate;
+    @Getter
+    @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id", nullable = false)
+    private Team team;
 
-    @Temporal(TemporalType.DATE)
-    private Date endDate;
+    @Getter
+    @Setter
+    @OneToMany(
+            mappedBy = "sprint",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Ticket> tasks = new ArrayList<>();
+
+    @Getter
+    @Setter
+    private LocalDate startDate;
+
+    @Getter
+    @Setter
+    private LocalDate endDate;
+
+    @Getter
+    @Setter
+    @Enumerated(EnumType.STRING)
+    private SprintStatus sprintStatus;
 
 }
