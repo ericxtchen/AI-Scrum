@@ -31,16 +31,26 @@ public class User {
 
     @Getter
     @Setter
-    @Column(length = 2048, nullable = false)
+    @Column(length = 4096, nullable = false)
     private String accessToken;
 
     @Getter
     @Setter
-    @Column(length = 2048, nullable = false)
+    @Column(length = 4096, nullable = false)
     private String refreshToken;
 
     @Getter
     @Setter
     @Column(nullable = false)
     private Instant accessTokenExpiresAt;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private String cloudId;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private String siteUrl;
 }
