@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -53,4 +54,14 @@ public class User {
     @Setter
     @Column(nullable = false)
     private String siteUrl;
+
+    @Getter
+    @Setter
+    @ManyToMany
+    @JoinTable(
+            name = "user_teams",
+            joinColumns = @JoinColumn(name = "principal_name", referencedColumnName = "principalName"), // without referencedColumnName, it will default to the id
+            inverseJoinColumns = @JoinColumn(name = "team_name", referencedColumnName = "teamName")
+    )
+    private List<Team> teams;
 }

@@ -18,7 +18,7 @@ public class Team {
 
     @Getter
     @Setter
-    @Column(name = "team_name", nullable = false)
+    @Column(name = "team_name", nullable = false, unique = true)
     private String teamName;
 
     @Getter
@@ -38,4 +38,9 @@ public class Team {
             orphanRemoval = true
     )
     private List<MetricSnapshot> metricSnapshots = new ArrayList<>();
+
+    @Getter
+    @Setter
+    @ManyToMany(mappedBy = "teams")
+    private List<User> users = new ArrayList<>();
 }

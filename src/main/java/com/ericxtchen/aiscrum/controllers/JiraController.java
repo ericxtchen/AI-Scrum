@@ -1,15 +1,20 @@
 package com.ericxtchen.aiscrum.controllers;
 
 import com.ericxtchen.aiscrum.dto.JiraIssueResponse;
+import com.ericxtchen.aiscrum.entities.Team;
+import com.ericxtchen.aiscrum.entities.User;
 import com.ericxtchen.aiscrum.repositories.SprintRepository;
 import com.ericxtchen.aiscrum.repositories.TicketRepository;
 import com.ericxtchen.aiscrum.repositories.UserRepository;
 import com.ericxtchen.aiscrum.services.JiraIntegrationService;
 import com.ericxtchen.aiscrum.dto.JiraTicketDto;
+import com.ericxtchen.aiscrum.services.VelocityCalculatorService;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,12 +27,16 @@ import java.util.List;
 @RequestMapping("/api/get/jira")
 public class JiraController {
     private final JiraIntegrationService jiraIntegrationService;
+    private final VelocityCalculatorService velocityCalculatorService;
     private final SprintRepository sprintRepository;
     private final TicketRepository ticketRepository;
-    public JiraController(JiraIntegrationService jiraIntegrationService, SprintRepository sprintRepository, TicketRepository ticketRepository) {
+    private final UserRepository userRepository;
+    public JiraController(JiraIntegrationService jiraIntegrationService, VelocityCalculatorService velocityCalculatorService, SprintRepository sprintRepository, TicketRepository ticketRepository, UserRepository userRepository) {
         this.jiraIntegrationService = jiraIntegrationService;
+        this.velocityCalculatorService = velocityCalculatorService;
         this.sprintRepository = sprintRepository;
         this.ticketRepository = ticketRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -37,15 +46,21 @@ public class JiraController {
             if (authentication == null || !authentication.isAuthenticated()) {
                 throw new RuntimeException("User is not authenticated");
             }
-            String principalName = authentication.getName();
-            Mono<List<JiraTicketDto>> response = jiraIntegrationService.getClosedTicketsFromClosedSprint(authentication, 3); // should see all sprints
+            OAuth2AuthenticationToken oauth2token = (OAuth2AuthenticationToken) authentication;
+            OAuth2User oAuth2User = oauth2token.getPrincipal();
+            String principalName = oAuth2User.getName();
+            User user = userRepository.findByPrincipalName(principalName).orElseThrow(() -> new RuntimeException("User not found"));
+            List<Team> teams = user.getTeams();
 
-            if (response != null) {
-                return ResponseEntity.ok(response);
-            } else {
-                // This case handles if the service call returns null for some reason.
-                return ResponseEntity.status(404).body("No issues found or response was null.");
-            }
+
+            //Mono<List<JiraTicketDto>> response = jiraIntegrationService.getClosedTicketsFromClosedSprint(authentication, 3); // should see all sprints
+
+//            if (response != null) {
+//                return ResponseEntity.ok(response);
+//            } else {
+//                // This case handles if the service call returns null for some reason.
+//                return ResponseEntity.status(404).body("No issues found or response was null.");
+//            }
         } catch (WebClientResponseException e) {
             // This is CRUCIAL: It catches API errors from Jira (like 401 Unauthorized, 404 Not Found).
             System.err.println("Error from Jira API: " + e.getResponseBodyAsString());
