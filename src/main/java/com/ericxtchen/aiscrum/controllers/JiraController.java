@@ -1,42 +1,45 @@
 package com.ericxtchen.aiscrum.controllers;
 
-import com.ericxtchen.aiscrum.dto.JiraIssueResponse;
+import com.ericxtchen.aiscrum.entities.Sprint;
 import com.ericxtchen.aiscrum.entities.Team;
 import com.ericxtchen.aiscrum.entities.User;
 import com.ericxtchen.aiscrum.repositories.SprintRepository;
 import com.ericxtchen.aiscrum.repositories.TicketRepository;
 import com.ericxtchen.aiscrum.repositories.UserRepository;
-import com.ericxtchen.aiscrum.services.JiraIntegrationService;
-import com.ericxtchen.aiscrum.dto.JiraTicketDto;
+import com.ericxtchen.aiscrum.services.JiraFieldService;
 import com.ericxtchen.aiscrum.services.VelocityCalculatorService;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/get/jira")
 public class JiraController {
-    private final JiraIntegrationService jiraIntegrationService;
+    private final OAuth2AuthorizedClientManager authorizedClientManager;
     private final VelocityCalculatorService velocityCalculatorService;
     private final SprintRepository sprintRepository;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
-    public JiraController(JiraIntegrationService jiraIntegrationService, VelocityCalculatorService velocityCalculatorService, SprintRepository sprintRepository, TicketRepository ticketRepository, UserRepository userRepository) {
-        this.jiraIntegrationService = jiraIntegrationService;
+    private final JiraFieldService jiraFieldService;
+
+    public JiraController(OAuth2AuthorizedClientManager authorizedClientManager, VelocityCalculatorService velocityCalculatorService, SprintRepository sprintRepository, TicketRepository ticketRepository, UserRepository userRepository, JiraFieldService jiraFieldService) {
+        this.authorizedClientManager = authorizedClientManager;
         this.velocityCalculatorService = velocityCalculatorService;
         this.sprintRepository = sprintRepository;
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
+        this.jiraFieldService = jiraFieldService;
     }
 
     @GetMapping
@@ -46,16 +49,26 @@ public class JiraController {
             if (authentication == null || !authentication.isAuthenticated()) {
                 throw new RuntimeException("User is not authenticated");
             }
-            OAuth2AuthenticationToken oauth2token = (OAuth2AuthenticationToken) authentication;
-            OAuth2User oAuth2User = oauth2token.getPrincipal();
-            String principalName = oAuth2User.getName();
+
+            OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest
+                    .withClientRegistrationId("jira")
+                    .principal(authentication)
+                    .build();
+
+            OAuth2AuthorizedClient authorizedClient = authorizedClientManager.authorize(authorizeRequest);
+            String principalName = authorizedClient.getPrincipalName();
+            String storyPointsField = jiraFieldService.getStoryPointsFieldId(authorizedClient);
+
+//            OAuth2AuthenticationToken oauth2token = (OAuth2AuthenticationToken) authentication;
+//            OAuth2User oAuth2User = oauth2token.getPrincipal();
+//            String principalName = oAuth2User.getName();
             User user = userRepository.findByPrincipalName(principalName).orElseThrow(() -> new RuntimeException("User not found"));
             List<Team> teams = user.getTeams();
-
-
+            Map<Long, List<Sprint>> latestSprintsByTeam = new HashMap<>(); // find a way to store the sprints or whatever data that should be associated with each of the user's teams here
+            teams.forEach(team -> {velocityCalculatorService.calculateAverageVelocity(authorizedClient, team.getId(), storyPointsField);});
             //Mono<List<JiraTicketDto>> response = jiraIntegrationService.getClosedTicketsFromClosedSprint(authentication, 3); // should see all sprints
-
-//            if (response != null) {
+            return ResponseEntity.status(200).build();
+            //if (response != null) {
 //                return ResponseEntity.ok(response);
 //            } else {
 //                // This case handles if the service call returns null for some reason.

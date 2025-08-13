@@ -23,7 +23,7 @@ public class MetricSnapshot {
     @Getter
     @Setter
     @Column(nullable = false)
-    private String metricValue;
+    private double metricValue;
 
     @Getter
     @Setter

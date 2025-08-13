@@ -24,6 +24,7 @@ public class JiraFieldService {
         this.userRepository = userRepository;
     }
 
+    // will the story points id be different across projects on the same jira site?
     public String getStoryPointsFieldId(OAuth2AuthorizedClient authorizedClient) {
         if (storyPointsFieldId != null) {
             return storyPointsFieldId;
