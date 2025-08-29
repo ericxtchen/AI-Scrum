@@ -60,8 +60,8 @@ public class User {
     @ManyToMany
     @JoinTable(
             name = "user_teams",
-            joinColumns = @JoinColumn(name = "principal_name", referencedColumnName = "principalName"), // without referencedColumnName, it will default to the id
-            inverseJoinColumns = @JoinColumn(name = "team_name", referencedColumnName = "teamName")
+            joinColumns = @JoinColumn(name = "principal_name", referencedColumnName = "principal_name"), // without referencedColumnName, it will default to the id
+            inverseJoinColumns = @JoinColumn(name = "team_name", referencedColumnName = "team_name")
     )
     private List<Team> teams;
 }

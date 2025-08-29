@@ -16,7 +16,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/", "/error").permitAll()
+                        .requestMatchers("/", "/error", "/api/recall/webhook").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -27,6 +27,9 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/recall/webhook") // disable CSRF only for webhook
                 );
 
         return http.build();

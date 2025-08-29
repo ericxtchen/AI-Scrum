@@ -6,5 +6,5 @@ import lombok.Setter;
 public class Bot {
     @Getter
     @Setter
-    private String botId;
+    private String id;
 }

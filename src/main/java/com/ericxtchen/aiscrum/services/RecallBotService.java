@@ -22,10 +22,11 @@ public class RecallBotService {
                 .uri("https://us-west-2.recall.ai/api/v1/bot/")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + System.getenv("RECALL_API_KEY"))
                 .bodyValue(recallAIMeeting) // the meeting URL
                 .exchangeToMono(response -> {
                     int statusCode = response.statusCode().value();
-                    if (statusCode == 200) {
+                    if (statusCode >= 200 && statusCode < 300) {
                         return response.bodyToMono(String.class);
                     } else {
                         return Mono.error(new RuntimeException("HTTP error: " + response.statusCode()));
