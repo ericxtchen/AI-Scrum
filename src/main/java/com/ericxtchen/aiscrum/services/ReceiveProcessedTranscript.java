@@ -1,4 +1,4 @@
-package com.ericxtchen.aiscrum.controllers;
+package com.ericxtchen.aiscrum.services;
 
 import com.ericxtchen.aiscrum.dto.AnalysisPayload;
 import com.ericxtchen.aiscrum.entities.Blocker;
@@ -16,7 +16,7 @@ import java.time.LocalDate;
 public class ReceiveProcessedTranscript {
     public final MeetingSummaryRepository meetingSummaryRepository;
     public final SprintRepository sprintRepository;
-    public ReceiveProcessedTranscript(MeetingSummaryRepository meetingSummaryRepository,  SprintRepository sprintRepository) {
+    public ReceiveProcessedTranscript(MeetingSummaryRepository meetingSummaryRepository, SprintRepository sprintRepository) {
         this.meetingSummaryRepository = meetingSummaryRepository;
         this.sprintRepository = sprintRepository;
     }
