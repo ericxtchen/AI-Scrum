@@ -12,6 +12,12 @@ public class Blocker {
     @Setter
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sprint_id", nullable = false)
+    @Getter
+    @Setter
+    private Sprint sprint;
+
     @Getter
     @Setter
     private String description;

@@ -1,15 +1,11 @@
 package com.ericxtchen.aiscrum.controllers;
 
-import com.ericxtchen.aiscrum.entities.MeetingSummary;
 import com.ericxtchen.aiscrum.repositories.BlockerRepository;
 import com.ericxtchen.aiscrum.repositories.MeetingSummaryRepository;
-import com.ericxtchen.aiscrum.services.ReceiveProcessedTranscript;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/analysis")
@@ -28,6 +24,14 @@ public class AnalysisController {
         return meetingSummaryRepository
                 .findBySprint_IdAndMeetingDate(sprintId, now)
                 .map(summary -> ResponseEntity.ok(summary.getSummaryText()))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/teams/{sprintId}/blockers")
+    public ResponseEntity<String> getBlockers(@PathVariable("sprintId") Long sprintId) {
+        return blockerRepository
+                .findBySprint_Id(sprintId)
+                .map(blocker -> ResponseEntity.ok(blocker.getDescription()))
                 .orElse(ResponseEntity.notFound().build());
     }
 }
